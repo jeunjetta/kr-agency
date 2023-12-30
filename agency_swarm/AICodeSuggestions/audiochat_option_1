@@ -1,0 +1,62 @@
+# Enable AudioChat
+
+# Import necessary libraries
+import speech_recognition as sr
+from gtts import gTTS
+from IPython.display import Audio
+import os
+
+# Function to recognize speech
+def recognize_speech_from_microphone(recognizer, microphone):
+    if not isinstance(recognizer, sr.Recognizer):
+        raise TypeError("`recognizer` must be `Recognizer` instance")
+
+    if not isinstance(microphone, sr.Microphone):
+        raise TypeError("`microphone` must be `Microphone` instance")
+
+    with microphone as source:
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source)
+
+    response = {
+        "success": True,
+        "error": None,
+        "transcription": None
+    }
+
+    try:
+        response["transcription"] = recognizer.recognize_google(audio)
+    except sr.RequestError:
+        response["success"] = False
+        response["error"] = "API unavailable"
+    except sr.UnknownValueError:
+        response["error"] = "Unable to recognize speech"
+
+    return response
+
+# Convert text to speech and play it
+def speak_text(text):
+    tts = gTTS(text=text, lang='en')
+    filename = 'temp_audio.mp3'
+    tts.save(filename)
+    return Audio(filename, autoplay=True)
+
+# Recognizer and microphone instances
+recognizer = sr.Recognizer()
+microphone = sr.Microphone()
+
+# Start the conversation
+print("Say something!")
+response = recognize_speech_from_microphone(recognizer, microphone)
+
+# Check the response
+if response["success"]:
+    recognized_text = response["transcription"]
+    print("You said:", recognized_text)
+    response_speech = speak_text(f"You said: {recognized_text}")
+else:
+    if response["error"]:
+        print("Error:", response["error"])
+        response_speech = speak_text("Sorry, I didn't catch that. Could you repeat please?")
+
+response_speech
