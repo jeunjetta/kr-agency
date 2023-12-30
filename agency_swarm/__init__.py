@@ -1,4 +1,4 @@
-from .agency import Agency
+from .agency.agency import Agency
 from .agency.audioagency import AudioEnabledAgency
 from .agents import Agent
 from .tools import BaseTool
